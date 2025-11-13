@@ -1,1 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat Global - Supabase</title>
+  <meta name="theme-color" content="#ffd700">
+  <link rel="manifest" href="manifest.json">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .chat-container {
+      width: 90%;
+      max-width: 400px;
+      background: #1e1e1e;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 10px;
+      color: #ffd700;
+    }
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 10px;
+      padding: 5px;
+      border: 1px solid #333;
+      border-radius: 5px;
+      background: #0f0f0f;
+    }
+    .message {
+      margin: 5px 0;
+      padding: 5px;
+      background: #222;
+      border-radius: 5px;
+    }
+    .message strong {
+      color: #ffd700;
+    }
+    form {
+      display: flex;
+      gap: 5px;
+    }
+    input {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      border-radius: 5px;
+    }
+    button {
+      background: #ffd700;
+      color: #111;
+      border: none;
+      border-radius: 5px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #ffeb3b;
+    }
+  </style>
+  <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ffd700">
+  
+  
+  
+</head>
+<body>
+  <div class="chat-container">
+    <h2>💬 Chat Global</h2>
+    <div id="messages" class="messages"></div>
+    <form id="chatForm">
+      <input type="text" id="username" placeholder="Seu nome" required>
+      <input type="text" id="message" placeholder="Digite uma mensagem..." required>
+      <button type="submit">Enviar</button>
+    </form>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+ //   const SUPABASE_URL = "https://xxxxx.supabase.co";
+  //  const SUPABASE_KEY = "eyJhbGciOiJI...";
+  //  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+   // Configuração do Supabase - SUBSTITUA COM SUAS CREDENCIAIS
+        const SUPABASE_URL = "https://bceykkqbdsdrclmeybxx.supabase.co    ";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJjZXlra3FiZHNkcmNsbWV5Ynh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODYxODEsImV4cCI6MjA3ODM2MjE4MX0.mZ5j9DRHANmX2w2avkMGydbj4a8GibSaozsegm24dR8    ";
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  
+  
+  
+  
+    const messagesDiv = document.getElementById('messages');
+    const form = document.getElementById('chatForm');
+    const usernameInput = document.getElementById('username');
+    const messageInput = document.getElementById('message');
+
+    async function loadMessages() {
+      const { data, error } = await supabase.from('messages').select('*').order('created_at', { ascending: true });
+      if (error) {
+        console.error(error);
+        return;
+      }
+      renderMessages(data);
+    }
+
+    function renderMessages(msgs) {
+      messagesDiv.innerHTML = '';
+      msgs.forEach(msg => {
+        const div = document.createElement('div');
+        div.className = 'message';
+        div.innerHTML = `<strong>${msg.username}:</strong> ${msg.message}`;
+        messagesDiv.appendChild(div);
+      });
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = usernameInput.value.trim() || "Anônimo";
+      const text = messageInput.value.trim();
+      if (!text) return;
+
+      const { error } = await supabase.from('messages').insert([{ username, message: text }]);
+      if (error) console.error(error);
+      messageInput.value = '';
+    });
+
+    supabase.channel('public:messages')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, payload => {
+        loadMessages();
+      })
+      .subscribe();
+
+    loadMessages();
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("service-worker.js")
+        .then(() => console.log("Service Worker registrado."))
+        .catch(err => console.error("Erro ao registrar o Service Worker:", err));
+    }
+  </script>
+  
+  <script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js")
+      .then(() => console.log("Service Worker registrado."))
+      .catch(err => console.error("Erro ao registrar o Service Worker:", err));
+  }
+</script>
+  
+  
+  
+  
+</body>
+</html>
 
